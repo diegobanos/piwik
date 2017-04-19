@@ -70,15 +70,22 @@ describe("Overlay", function () {
 
     it("should show stats for new links when dropdown opened", function (done) {
         expect.screenshot("page_new_links").to.be.capture(function (page) {
-            var pos = page.webpage.evaluate(function () {
-                var iframe = $('iframe'),
-                    innerOffset = $('.dropdown-toggle', iframe.contents()).offset();
+
+            page.webpage.evaluate(function(){
+                $('iframe').attr('name', 'framename');
+            });
+            page.webpage.switchToFrame('framename');
+
+            var pos = page.evaluate(function () {
+                var recta = document.querySelector('.dropdown-toggle').getBoundingClientRect();
                 return {
-                    x: iframe.offset().left + innerOffset.left + 32, // position is incorrect for some reason w/o adding pixels
-                    y: iframe.offset().top + innerOffset.top
+                    x: recta.left + recta.width / 2,
+                    y: recta.top + recta.height / 2
                 };
             });
-            page.sendMouseEvent('click', pos, 2000);
+            page.sendMouseEvent('click', pos);
+
+            page.selectMainFrame();
 
             removeOptOutIframe(page);
         }, done);
@@ -112,7 +119,9 @@ describe("Overlay", function () {
 
     it("should open row evolution popup when row evolution link clicked", function (done) {
         expect.screenshot("row_evolution").to.be.capture(function (page) {
-            page.click('#overlayRowEvolution');
+            page.evaluate(function () {
+                $('#overlayRowEvolution').click();
+            }, 500);
             page.evaluate(function () {
                 $('.jqplot-xaxis').hide(); // xaxis will change every day so hide it
             });
@@ -123,8 +132,12 @@ describe("Overlay", function () {
 
     it("should open transitions popup when transitions link clicked", function (done) {
         expect.screenshot("transitions").to.be.capture(function (page) {
-            page.click('button.ui-dialog-titlebar-close');
-            page.click('#overlayTransitions');
+            page.evaluate(function () {
+                $('button.ui-dialog-titlebar-close').click();
+            }, 500);
+            page.evaluate(function () {
+                $('#overlayTransitions').click();
+            }, 500);
 
             removeOptOutIframe(page);
         }, done);
